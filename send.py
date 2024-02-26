@@ -20,20 +20,23 @@ def append_message(keyword):
     
     # 日付
     now = datetime.now()
-    
+
     year = str(now.year)
     month = str(now.month).zfill(2)
     day = str(now.day).zfill(2)
     
-    nextday = str(now.day + 1).zfill(2)
+    yday = str(now.day + 1).zfill(2)
     
     protodate = year + "-" + month + "-" + day
+    
+    yes = year + "-" + month + "-" + yday
     nowdate = protodate + "T00:00:00"
     
-    ##未来の日付はリクエストで指定できない
+    yesterday = yes + "T00:00:00"
+    
     print(nowdate)
     
-    URL ='https://api.dmm.com/affiliate/v3/ItemList?api_id=fwSE6apmeTUzewZuKc9m&affiliate_id=matsu55-994&service=digital&floor=videoa&site=FANZA&gte_date=' + nowdate + '&lte_date=' + nowdate + '&keyword=' + keyword
+    URL ='https://api.dmm.com/affiliate/v3/ItemList?api_id=fwSE6apmeTUzewZuKc9m&affiliate_id=matsu55-994&service=digital&floor=videoa&site=FANZA&gte_date=' + nowdate + '&lte_date=' + yesterday + '&keyword=' + keyword
     
     response = requests.get(URL) 
     data = response.json()
