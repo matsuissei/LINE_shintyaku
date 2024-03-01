@@ -1,74 +1,97 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+# In[1]:
+
+
+##Webhookが有効になっているか、URLが間違っていないかを確認する
+from flask import Flask, request, abort
+from linebot import LineBotApi, WebhookHandler
+from linebot.exceptions import InvalidSignatureError
+from linebot.models import MessageEvent, TextMessage, TextSendMessage
+import psycopg2
+import os
+
+app = Flask(__name__)
+
+# LINE Botのアクセストークン
+CHANNEL_ACCESS_TOKEN = "S7+0uRSDDcMODsSGZxla3BWU2uf0B4/qWFVssztQT3bDxxEDSUd16zg0DnUVh7v6ngoNRY3E26NDoa3kNGcNVCVKqO2kVSxlq0s1OIb8T1RDQHAtJp145gqAFHTN9gdM9kUl0xCfPAPht9tzuGZwlgdB04t89/1O/w1cDnyilFU="
+CHANNEL_SECRET = "c622d92bb84e3c7cbf09bda94a23cf1c"
+
+line_bot_api = LineBotApi(CHANNEL_ACCESS_TOKEN)
+handler = WebhookHandler(CHANNEL_SECRET)
+
+DATABASE_URL = os.environ['DATABASE_URL']
+
+@app.route("/callback", methods=['POST'])
+def callback():
+    signature = request.headers['X-Line-Signature']
+
+    body = request.get_data(as_text=True)
+    try:
+        handler.handle(body, signature)
+    except InvalidSignatureError:
+        abort(400)
+
+    return 'OK'
+
+@handler.add(MessageEvent, message=TextMessage)
+def handle_message(event):
+    user_id = event.source.user_id
+    message_text = event.message.text
+
+    if 'を登録' in message_text: # メッセージが'と登録する'を含む場合
+        keyword = message_text.replace('を登録', '') # キーワードを抽出
+        store_in_database(user_id, keyword) # データベースに保存
+    elif 'を削除' in message_text: # メッセージが'を削除'を含む場合
+        keyword = message_text.replace('を削除', '') # キーワードを抽出
+        delete_from_database(user_id, keyword) # データベースから削除
+    elif '確認' in message_text: # メッセージが'確認'を含む場合
+        keywords = fetch_from_database(user_id) # データベースから取得
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=', '.join(keywords)))
+
+def store_in_database(user_id, keyword):
+    conn = psycopg2.connect(DATABASE_URL, sslmode='require')
+    cur = conn.cursor()
+
+    # ユーザーIDとキーワードをデータベースに保存
+    cur.execute("INSERT INTO user_keywords (user_id, keyword) VALUES (%s, %s)", (user_id, keyword))
+
+    conn.commit()
+    cur.close()
+    conn.close()
+
+def delete_from_database(user_id, keyword):
+    conn = psycopg2.connect(DATABASE_URL, sslmode='require')
+    cur = conn.cursor()
+
+    # ユーザーIDとキーワードに一致するデータをデータベースから削除
+    cur.execute("DELETE FROM user_keywords WHERE user_id = %s AND keyword = %s", (user_id, keyword))
+
+    conn.commit()
+    cur.close()
+    conn.close()
+
+def fetch_from_database(user_id):
+    conn = psycopg2.connect(DATABASE_URL, sslmode='require')
+    cur = conn.cursor()
+
+    # ユーザーIDに一致するキーワードをデータベースから取得
+    cur.execute("SELECT keyword FROM user_keywords WHERE user_id = %s", (user_id,))
+
+    keywords = [row[0] for row in cur.fetchall()]
+
+    cur.close()
+    conn.close()
+
+    return keywords
+
+if __name__ == "__main__":
+    app.run()
+
+
 # In[ ]:
 
 
-##HerokuにDATABASEURLとチャンネルアクセストークンを登録する
-from datetime import datetime
-import os
-import psycopg2
-from linebot import LineBotApi
-from linebot.models import TextSendMessage
-import requests
 
-DATABASE_URL = os.environ['DATABASE_URL']
-LINE_CHANNEL_ACCESS_TOKEN = os.environ['LINE_CHANNEL_ACCESS_TOKEN']
-
-##keywordを引数に作品の情報を検索する
-def append_message(keyword):
-    
-    # 日付
-    now = datetime.now()
-
-    year = str(now.year)
-    month = str(now.month).zfill(2)
-    day = str(now.day).zfill(2)
-    
-    yday = str(now.day + 1).zfill(2)
-    
-    protodate = year + "-" + month + "-" + day
-    
-    yes = year + "-" + month + "-" + yday
-    nowdate = protodate + "T00:00:00"
-    
-    yesterday = yes + "T00:00:00"
-    
-    print(nowdate)
-    
-    URL ='https://api.dmm.com/affiliate/v3/ItemList?api_id=fwSE6apmeTUzewZuKc9m&affiliate_id=matsu55-994&service=digital&floor=videoa&site=FANZA&gte_date=' + nowdate + '&lte_date=' + yesterday + '&keyword=' + keyword
-    
-    response = requests.get(URL) 
-    data = response.json()
-    
-    ##作品のタイトル、女優名、パッケージ、価格を検索
-    title = data["result"]["items"][0]["title"]
-    joyu = data["result"]["items"][0]["iteminfo"]["actress"][0]["name"]
-    price = data["result"]["items"][0]["prices"]["price"]
-    link = data["result"]["items"][0]["affiliateURL"]
-     
-    return title, joyu, price, link
-
-conn = psycopg2.connect(DATABASE_URL, sslmode='require')
-cur = conn.cursor()
-
-cur.execute("SELECT user_id, keyword FROM user_keywords")
-rows = cur.fetchall()
-
-line_bot_api = LineBotApi(LINE_CHANNEL_ACCESS_TOKEN)
-
-for row in rows:
-    user_id = row[0]
-    keyword = row[1]
-    try:
-        ##検索された情報から紹介文（massage）を生成
-        tit, joy, pri, lin = append_message(keyword)
-        text = "新しい作品があります！！！\n\n" + tit + "\n" + joy + "\n" + pri + "\n\n↓↓詳細はこちらから↓↓\n" + lin
-        message = TextSendMessage(text=text)
-        line_bot_api.push_message(user_id, message)
-    except Exception as e:
-        print(f"Error occurred: {e}")
-
-cur.close()
-conn.close()
 
