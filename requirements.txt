@@ -7,4 +7,4 @@ psycopg2-binary
 Jinja2
 MarkupSafe
 itsdangerous
-werkzeug==1.0.1
+werkzeug==2.0
