@@ -2,9 +2,9 @@ gunicorn
 line-bot-sdk
 psycopg2
 requests
-Flask
+Flask==2.1.2
 psycopg2-binary
 Jinja2
 MarkupSafe
 itsdangerous
-werkzeug
+werkzeug==1.0.1
