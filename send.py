@@ -67,7 +67,8 @@ def delete_from_database(user_id, keyword):
 
     # ユーザーIDとキーワードに一致するデータをデータベースから削除
     # cur.execute("DELETE FROM user_keywords WHERE user_id = %s AND keyword = %s", (user_id, keyword))
-    cur.execute("DELETE FROM user_keywords")
+    # cur.execute("DELETE FROM user_keywords")
+    cur.execute("INSERT INTO user_keywords (user_id, keyword) VALUES (%s, %s)", (user_id, keyword))
 
     conn.commit()
     cur.close()
