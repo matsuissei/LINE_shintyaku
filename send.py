@@ -50,43 +50,86 @@ def handle_message(event):
         keywords = fetch_from_database(user_id) # データベースから取得
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=', '.join(keywords)))
 
-def store_in_database(user_id, keyword):
+# def store_in_database(user_id, keyword):
+#     conn = psycopg2.connect(DATABASE_URL, sslmode='require')
+#     cur = conn.cursor()
+
+#     # ユーザーIDとキーワードをデータベースに保存
+#     cur.execute("INSERT INTO user_keywords (user_id, keyword) VALUES (%s, %s)", (user_id, keyword))
+
+#     conn.commit()
+#     cur.close()
+#     conn.close()
+
+# def delete_from_database(user_id, keyword):
+#     conn = psycopg2.connect(DATABASE_URL, sslmode='require')
+#     cur = conn.cursor()
+
+#     # ユーザーIDとキーワードに一致するデータをデータベースから削除
+#     # cur.execute("DELETE FROM user_keywords WHERE user_id = %s AND keyword = %s", (user_id, keyword))
+#     # cur.execute("DELETE FROM user_keywords")
+#     cur.execute("INSERT INTO user_keywords (user_id, keyword) VALUES (%s, %s)", (user_id, keyword))
+
+#     conn.commit()
+#     cur.close()
+#     conn.close()
+
+# def fetch_from_database(user_id):
+#     conn = psycopg2.connect(DATABASE_URL, sslmode='require')
+#     cur = conn.cursor()
+
+#     # ユーザーIDに一致するキーワードをデータベースから取得
+#     cur.execute("SELECT keyword FROM user_keywords WHERE user_id = %s", (user_id,))
+
+#     keywords = [row[0] for row in cur.fetchall()]
+
+#     cur.close()
+#     conn.close()
+
+#     return keywords
+        
+def connect_to_database():
     conn = psycopg2.connect(DATABASE_URL, sslmode='require')
+    return conn
+
+def execute_query(conn, query, params=None):
     cur = conn.cursor()
-
-    # ユーザーIDとキーワードをデータベースに保存
-    cur.execute("INSERT INTO user_keywords (user_id, keyword) VALUES (%s, %s)", (user_id, keyword))
-
+    if params:
+        cur.execute(query, params)
+    else:
+        cur.execute(query)
     conn.commit()
     cur.close()
-    conn.close()
-
-def delete_from_database(user_id, keyword):
-    conn = psycopg2.connect(DATABASE_URL, sslmode='require')
-    cur = conn.cursor()
-
-    # ユーザーIDとキーワードに一致するデータをデータベースから削除
-    # cur.execute("DELETE FROM user_keywords WHERE user_id = %s AND keyword = %s", (user_id, keyword))
-    # cur.execute("DELETE FROM user_keywords")
-    cur.execute("INSERT INTO user_keywords (user_id, keyword) VALUES (%s, %s)", (user_id, keyword))
-
-    conn.commit()
-    cur.close()
-    conn.close()
 
 def fetch_from_database(user_id):
-    conn = psycopg2.connect(DATABASE_URL, sslmode='require')
+    conn = connect_to_database()
     cur = conn.cursor()
 
-    # ユーザーIDに一致するキーワードをデータベースから取得
     cur.execute("SELECT keyword FROM user_keywords WHERE user_id = %s", (user_id,))
-
     keywords = [row[0] for row in cur.fetchall()]
 
     cur.close()
     conn.close()
 
     return keywords
+
+def store_in_database(user_id, keyword):
+    conn = connect_to_database()
+
+    query = "INSERT INTO user_keywords (user_id, keyword) VALUES (%s, %s)"
+    params = (user_id, keyword)
+    execute_query(conn, query, params)
+
+    conn.close()
+
+def delete_from_database(user_id, keyword):
+    conn = connect_to_database()
+
+    query = "DELETE FROM user_keywords WHERE user_id = %s AND keyword = %s"
+    params = (user_id, keyword)
+    execute_query(conn, query, params)
+
+    conn.close()
 
 if __name__ == "__main__":
     app.run()
