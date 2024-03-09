@@ -43,8 +43,8 @@ def handle_message(event):
     if 'を登録' in message_text: # メッセージが'と登録する'を含む場合
         keyword = message_text.replace('を登録', '') # キーワードを抽出
         store_in_database(user_id, keyword) # データベースに保存
-    elif 'ns' in message_text: # メッセージが'を削除'を含む場合
-        keyword = message_text.replace('ns', '') # キーワードを抽出
+    elif 'を削除' in message_text: # メッセージが'を削除'を含む場合
+        keyword = message_text.replace('を削除', '') # キーワードを抽出
         delete_from_database(user_id, keyword) # データベースから削除
     elif '確認' in message_text: # メッセージが'確認'を含む場合
         keywords = fetch_from_database(user_id) # データベースから取得
