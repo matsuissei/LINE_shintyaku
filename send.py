@@ -42,12 +42,9 @@ def append_message(keyword):
     
     ##作品のタイトル、女優名、パッケージ、価格を検索
     title = data["result"]["items"][0]["title"]
-    joyu = data["result"]["items"][0]["iteminfo"]["actress"][0]["name"]
-    image = data["result"]["items"][0]["imageURL"]["large"]
-    price = data["result"]["items"][0]["prices"]["price"]
     link = data["result"]["items"][0]["affiliateURL"]
      
-    return title, joyu, image, price, link
+    return keyword, title, link
 
 conn = psycopg2.connect(DATABASE_URL, sslmode='require')
 cur = conn.cursor()
@@ -62,8 +59,8 @@ for row in rows:
     keyword = row[1]
     try:
         ##検索された情報から紹介文（massage）を生成
-        tit, joy, ima, pri, lin = append_message(keyword)
-        text = "新しい作品があります！！！\n\n" + tit + "\n" + joy + "\n" + pri +  "\n\n" + ima + "\n\n↓↓詳細はこちらから↓↓\n" + lin
+        key, tit, lin = append_message(keyword)
+        text = "【" + key + "】に関する新しい作品があります！！！\n\n" + tit + "\n\n↓↓詳細はこちらから↓↓\n" + lin
         message = TextSendMessage(text=text)
         line_bot_api.push_message(user_id, message)
     except Exception as e:
