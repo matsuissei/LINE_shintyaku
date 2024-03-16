@@ -60,7 +60,7 @@ for row in rows:
     try:
         ##検索された情報から紹介文（massage）を生成
         key, tit, lin = append_message(keyword)
-        text = "【" + key + "】に関する新しい作品があります！！！\n\n" + tit + "\n\n↓↓詳細はこちらから↓↓\n" + lin
+        text = "【" + key + "】に関する新しい作品があります！！！\n\n" + tit + "\n\n"
         message = TemplateSendMessage(
             alt_text='詳細はこちら',
             template=ButtonsTemplate(
