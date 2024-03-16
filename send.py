@@ -9,7 +9,7 @@ from datetime import datetime
 import os
 import psycopg2
 from linebot import LineBotApi
-from linebot.models import TextSendMessage
+from linebot.models import TextSendMessage, TemplateSendMessage, ButtonsTemplate, URIAction
 import requests
 
 DATABASE_URL = os.environ['DATABASE_URL']
@@ -61,7 +61,18 @@ for row in rows:
         ##検索された情報から紹介文（massage）を生成
         key, tit, lin = append_message(keyword)
         text = "【" + key + "】に関する新しい作品があります！！！\n\n" + tit + "\n\n↓↓詳細はこちらから↓↓\n" + lin
-        message = TextSendMessage(text=text)
+        message = TemplateSendMessage(
+            alt_text='詳細はこちら',
+            template=ButtonsTemplate(
+                text="【" + key + "】に関する新しい作品があります！！！\n\n" + tit,
+                actions=[
+                    URIAction(
+                        label='詳細はこちら',
+                        uri=lin
+                    )
+                ]
+            )
+        )
         line_bot_api.push_message(user_id, message)
     except Exception as e:
         print(f"Error occurred: {e}")
