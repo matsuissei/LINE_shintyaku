@@ -25,4 +25,4 @@ jobs:
       env:
         HEROKU_APP_NAME: sendsintyaku
       run: |
-        heroku run python send.py --app $HEROKU_APP_NAME
+        heroku run python send.py --app sendsintyaku
