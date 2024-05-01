@@ -23,6 +23,6 @@ jobs:
 
     - name: Run command
       env:
-        HEROKU_APP_NAME: sendsintyaku
+        HEROKU_APP_NAME: sendsintyaku2
       run: |
-        heroku run python send.py --app sendsintyaku
+        heroku run python send.py --app sendsintyaku2
