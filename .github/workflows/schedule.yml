@@ -2,7 +2,7 @@ name: Heroku Scheduled Job
 
 on:
   schedule:
-    - cron: '*/5 * * * *' 
+    - cron: '*/5 * * * *'  # 5分毎に実行
 
 jobs:
   run:
@@ -19,10 +19,10 @@ jobs:
       env:
         HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
       run: |
-        heroku auth:token
+        echo $HEROKU_API_KEY | heroku login -i
 
     - name: Run command
       env:
         HEROKU_APP_NAME: sendsintyaku2
       run: |
-        heroku run python send.py --app sendsintyaku2
+        heroku run --app $HEROKU_APP_NAME -- python send.py
