@@ -15,11 +15,11 @@ jobs:
       run: |
         curl https://cli-assets.heroku.com/install.sh | sh
 
-    - name: Log in to Heroku
-      env:
-        HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
-      run: |
-        echo $HEROKU_API_KEY | heroku login -i
+    # - name: Log in to Heroku
+    #   env:
+    #     HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+    #   run: |
+    #     echo $HEROKU_API_KEY | heroku login -i
 
     - name: Run command
       env:
