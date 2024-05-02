@@ -86,5 +86,5 @@ def send_line_message():
     return jsonify({'result': 'Messages sent successfully'})
 
 # アプリケーションを起動するためのメイン関数
-if __name__ == '__main__':
-    app.run()
+#if __name__ == '__main__':
+#   app.run()

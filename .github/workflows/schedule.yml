@@ -24,6 +24,6 @@ jobs:
     - name: Run command
       env:
         HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
-        ##HEROKU_APP_NAME: sendsintyaku2
+        HEROKU_APP_NAME: sendsintyaku2
       run: |
         heroku run --app $HEROKU_APP_NAME -- python send.py
