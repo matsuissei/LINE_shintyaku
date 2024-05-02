@@ -2,7 +2,7 @@ name: Heroku Scheduled Job
 
 on:
   schedule:
-    - cron: '*/5 * * * *'  # 5分ごとに実行
+    - cron: '0 10 * * *'  # 5分ごとに実行
 
 jobs:
   run:
