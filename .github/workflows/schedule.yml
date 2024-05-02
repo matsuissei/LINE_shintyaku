@@ -2,7 +2,7 @@ name: Heroku Scheduled Job
 
 on:
   schedule:
-    - cron: '*/5 * * * *'  # 5分毎に実行
+    - cron: '*/5 * * * *'  # 5分ごとに実行
 
 jobs:
   run:
@@ -11,19 +11,19 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Set up Heroku CLI
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.9'  # お使いのPythonバージョンに合わせてください
+
+    - name: Install dependencies
       run: |
-        curl https://cli-assets.heroku.com/install.sh | sh
+        python -m pip install --upgrade pip
+        pip install psycopg2-binary requests line-bot-sdk
 
-    # - name: Log in to Heroku
-    #   env:
-    #     HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
-    #   run: |
-    #     echo $HEROKU_API_KEY | heroku login -i
-
-    - name: Run command
+    - name: Run script
       env:
-        HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
-        HEROKU_APP_NAME: sendsintyaku2
+        DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        LINE_CHANNEL_ACCESS_TOKEN: ${{ secrets.LINE_CHANNEL_ACCESS_TOKEN }}
       run: |
-        heroku run --app $HEROKU_APP_NAME -- python send.py
+        python send.py

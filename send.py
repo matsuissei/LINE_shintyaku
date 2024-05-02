@@ -1,16 +1,12 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from flask import Flask, jsonify
 from datetime import datetime
 import os
 import psycopg2
 from linebot import LineBotApi
 from linebot.models import TextSendMessage, TemplateSendMessage, ButtonsTemplate, URIAction
 import requests
-
-# Flaskアプリケーションの作成
-app = Flask(__name__)
 
 # 環境変数からデータベースURLとLINEチャンネルアクセストークンを取得
 DATABASE_URL = os.environ['DATABASE_URL']
@@ -23,18 +19,15 @@ def append_message(keyword):
     year = str(now.year)
     month = str(now.month).zfill(2)
     day = str(now.day).zfill(2)
-    yday = str(now.day + 1).zfill(2)
+    yday = str(now.day - 1).zfill(2)  # 昨日の日付を取得するために1を引く
     
     protodate = year + "-" + month + "-" + day
     yes = year + "-" + month + "-" + yday
     nowdate = protodate + "T00:00:00"
     yesterday = yes + "T00:00:00"
     
-    # 未来の日付はリクエストで指定できない
-    print(nowdate)
-    
     # DMM APIへのリクエストURL
-    URL ='https://api.dmm.com/affiliate/v3/ItemList?api_id=fwSE6apmeTUzewZuKc9m&affiliate_id=matsu55-994&service=digital&floor=videoa&site=FANZA&gte_date=' + nowdate + '&lte_date=' + yesterday + '&keyword=' + keyword
+    URL ='https://api.dmm.com/affiliate/v3/ItemList?api_id=fwSE6apmeTUzewZuKc9m&affiliate_id=matsu55-994&service=digital&floor=videoa&site=FANZA&gte_date=' + yesterday + '&lte_date=' + nowdate + '&keyword=' + keyword
     
     # DMM APIへのリクエスト送信
     response = requests.get(URL)
@@ -46,9 +39,8 @@ def append_message(keyword):
      
     return keyword, title, link
 
-# データベース接続とLINEメッセージ送信のためのエンドポイント
-@app.route('/send', methods=['GET'])
-def send_line_message():
+# メッセージを送信するメインの関数
+def main():
     conn = psycopg2.connect(DATABASE_URL, sslmode='require')
     cur = conn.cursor()
     
@@ -57,7 +49,6 @@ def send_line_message():
     
     line_bot_api = LineBotApi(LINE_CHANNEL_ACCESS_TOKEN)
 
-    # ユーザーごとにキーワードに基づいたメッセージを送信
     for row in rows:
         user_id = row[0]
         keyword = row[1]
@@ -77,14 +68,12 @@ def send_line_message():
                 )
             )
             line_bot_api.push_message(user_id, message)
-
         except Exception as e:
             print(f"Error occurred: {e}")
 
     cur.close()
     conn.close()
-    return jsonify({'result': 'Messages sent successfully'})
 
-# アプリケーションを起動するためのメイン関数
-#if __name__ == '__main__':
-#   app.run()
+# スクリプトが直接実行された場合にmain関数を呼び出します
+if __name__ == '__main__':
+    main()
